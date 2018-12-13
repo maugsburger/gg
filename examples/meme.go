@@ -19,8 +19,8 @@ func main() {
 				// give it rounded corners
 				continue
 			}
-			x := S/2 + float64(dx)
-			y := S/2 + float64(dy)
+			x := S/2 + float32(dx)
+			y := S/2 + float32(dy)
 			dc.DrawStringAnchored(s, x, y, 0.5, 0.5)
 		}
 	}

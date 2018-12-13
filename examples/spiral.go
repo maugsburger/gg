@@ -14,7 +14,7 @@ func main() {
 	dc.Clear()
 	dc.SetRGB(0, 0, 0)
 	for i := 0; i <= N; i++ {
-		t := float64(i) / N
+		t := float32(i) / N
 		d := t*S*0.4 + 10
 		a := t * math.Pi * 2 * 20
 		x := S/2 + math.Cos(a)*d

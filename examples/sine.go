@@ -14,8 +14,8 @@ func main() {
 	// dc.Clear()
 	dc.ScaleAbout(0.95, 0.75, W/2, H/2)
 	for i := 0; i < W; i++ {
-		a := float64(i) * 2 * math.Pi / W * 8
-		x := float64(i)
+		a := float32(i) * 2 * math.Pi / W * 8
+		x := float32(i)
 		y := (math.Sin(a) + 1) / 2 * H
 		dc.LineTo(x, y)
 	}

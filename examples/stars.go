@@ -8,13 +8,13 @@ import (
 )
 
 type Point struct {
-	X, Y float64
+	X, Y float32
 }
 
 func Polygon(n int) []Point {
 	result := make([]Point, n)
 	for i := 0; i < n; i++ {
-		a := float64(i)*2*math.Pi/float64(n) - math.Pi/2
+		a := float32(i)*2*math.Pi/float32(n) - math.Pi/2
 		result[i] = Point{math.Cos(a), math.Sin(a)}
 	}
 	return result
@@ -32,7 +32,7 @@ func main() {
 	for x := S / 2; x < W; x += S {
 		dc.Push()
 		s := rand.Float64()*S/4 + S/4
-		dc.Translate(float64(x), H/2)
+		dc.Translate(float32(x), H/2)
 		dc.Rotate(rand.Float64() * 2 * math.Pi)
 		dc.Scale(s, s)
 		for i := 0; i < n+1; i++ {

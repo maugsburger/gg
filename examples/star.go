@@ -7,13 +7,13 @@ import (
 )
 
 type Point struct {
-	X, Y float64
+	X, Y float32
 }
 
-func Polygon(n int, x, y, r float64) []Point {
+func Polygon(n int, x, y, r float32) []Point {
 	result := make([]Point, n)
 	for i := 0; i < n; i++ {
-		a := float64(i)*2*math.Pi/float64(n) - math.Pi/2
+		a := float32(i)*2*math.Pi/float32(n) - math.Pi/2
 		result[i] = Point{x + r*math.Cos(a), y + r*math.Sin(a)}
 	}
 	return result

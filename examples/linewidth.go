@@ -9,7 +9,7 @@ func main() {
 	dc.SetRGB(0, 0, 0)
 	w := 0.1
 	for i := 100; i <= 900; i += 20 {
-		x := float64(i)
+		x := float32(i)
 		dc.DrawLine(x+50, 0, x-50, 1000)
 		dc.SetLineWidth(w)
 		dc.Stroke()

@@ -17,11 +17,15 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
-func Radians(degrees float64) float64 {
+const (
+	Pi float32 = 3.14159265358979323846264338327950288419716939937510582097494459 // https://oeis.org/A000796
+)
+
+func Radians(degrees float32) float32 {
 	return degrees * math.Pi / 180
 }
 
-func Degrees(radians float64) float64 {
+func Degrees(radians float32) float32 {
 	return radians * 180 / math.Pi
 }
 
@@ -81,22 +85,22 @@ func parseHexColor(x string) (r, g, b, a int) {
 	return
 }
 
-func fixp(x, y float64) fixed.Point26_6 {
+func fixp(x, y float32) fixed.Point26_6 {
 	return fixed.Point26_6{fix(x), fix(y)}
 }
 
-func fix(x float64) fixed.Int26_6 {
+func fix(x float32) fixed.Int26_6 {
 	return fixed.Int26_6(x * 64)
 }
 
-func unfix(x fixed.Int26_6) float64 {
+func unfix(x fixed.Int26_6) float32 {
 	const shift, mask = 6, 1<<6 - 1
 	if x >= 0 {
-		return float64(x>>shift) + float64(x&mask)/64
+		return float32(x>>shift) + float32(x&mask)/64
 	}
 	x = -x
 	if x >= 0 {
-		return -(float64(x>>shift) + float64(x&mask)/64)
+		return -(float32(x>>shift) + float32(x&mask)/64)
 	}
 	return 0
 }
@@ -106,7 +110,7 @@ func unfix(x fixed.Int26_6) float64 {
 // are not thread safe and cannot be used in parallel across goroutines.
 // You can usually just use the Context.LoadFontFace function instead of
 // this package-level function.
-func LoadFontFace(path string, points float64) (font.Face, error) {
+func LoadFontFace(path string, points float32) (font.Face, error) {
 	fontBytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -116,8 +120,24 @@ func LoadFontFace(path string, points float64) (font.Face, error) {
 		return nil, err
 	}
 	face := truetype.NewFace(f, &truetype.Options{
-		Size: points,
+		Size: float64(points),
 		// Hinting: font.HintingFull,
 	})
 	return face, nil
+}
+
+func Sin(x float32) float32 {
+	return float32(math.Sin(float64(x)))
+}
+
+func Cos(x float32) float32 {
+	return float32(math.Cos(float64(x)))
+}
+
+func Hypot(x, y float32) float32 {
+	return float32(math.Hypot(float64(x), float64(y)))
+}
+
+func Sqrt(x float32) float32 {
+	return float32(math.Sqrt(float64(x)))
 }

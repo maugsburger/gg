@@ -1,9 +1,7 @@
 package gg
 
-import "math"
-
 type Matrix struct {
-	XX, YX, XY, YY, X0, Y0 float64
+	XX, YX, XY, YY, X0, Y0 float32
 }
 
 func Identity() Matrix {
@@ -14,7 +12,7 @@ func Identity() Matrix {
 	}
 }
 
-func Translate(x, y float64) Matrix {
+func Translate(x, y float32) Matrix {
 	return Matrix{
 		1, 0,
 		0, 1,
@@ -22,7 +20,7 @@ func Translate(x, y float64) Matrix {
 	}
 }
 
-func Scale(x, y float64) Matrix {
+func Scale(x, y float32) Matrix {
 	return Matrix{
 		x, 0,
 		0, y,
@@ -30,9 +28,9 @@ func Scale(x, y float64) Matrix {
 	}
 }
 
-func Rotate(angle float64) Matrix {
-	c := math.Cos(angle)
-	s := math.Sin(angle)
+func Rotate(angle float32) Matrix {
+	c := Cos(angle)
+	s := Sin(angle)
 	return Matrix{
 		c, s,
 		-s, c,
@@ -40,7 +38,7 @@ func Rotate(angle float64) Matrix {
 	}
 }
 
-func Shear(x, y float64) Matrix {
+func Shear(x, y float32) Matrix {
 	return Matrix{
 		1, y,
 		x, 1,
@@ -59,30 +57,30 @@ func (a Matrix) Multiply(b Matrix) Matrix {
 	}
 }
 
-func (a Matrix) TransformVector(x, y float64) (tx, ty float64) {
+func (a Matrix) TransformVector(x, y float32) (tx, ty float32) {
 	tx = a.XX*x + a.XY*y
 	ty = a.YX*x + a.YY*y
 	return
 }
 
-func (a Matrix) TransformPoint(x, y float64) (tx, ty float64) {
+func (a Matrix) TransformPoint(x, y float32) (tx, ty float32) {
 	tx = a.XX*x + a.XY*y + a.X0
 	ty = a.YX*x + a.YY*y + a.Y0
 	return
 }
 
-func (a Matrix) Translate(x, y float64) Matrix {
+func (a Matrix) Translate(x, y float32) Matrix {
 	return Translate(x, y).Multiply(a)
 }
 
-func (a Matrix) Scale(x, y float64) Matrix {
+func (a Matrix) Scale(x, y float32) Matrix {
 	return Scale(x, y).Multiply(a)
 }
 
-func (a Matrix) Rotate(angle float64) Matrix {
+func (a Matrix) Rotate(angle float32) Matrix {
 	return Rotate(angle).Multiply(a)
 }
 
-func (a Matrix) Shear(x, y float64) Matrix {
+func (a Matrix) Shear(x, y float32) Matrix {
 	return Shear(x, y).Multiply(a)
 }

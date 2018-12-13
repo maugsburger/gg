@@ -45,7 +45,7 @@ func TestGrid(t *testing.T) {
 	dc.SetRGB(1, 1, 1)
 	dc.Clear()
 	for i := 10; i < 100; i += 10 {
-		x := float64(i) + 0.5
+		x := float32(i) + 0.5
 		dc.DrawLine(x, 0, x, 100)
 		dc.DrawLine(0, x, 100, x)
 	}
@@ -185,7 +185,7 @@ func TestPushPop(t *testing.T) {
 	dc.SetRGBA(0, 0, 0, 0.1)
 	for i := 0; i < 360; i += 15 {
 		dc.Push()
-		dc.RotateAbout(Radians(float64(i)), S/2, S/2)
+		dc.RotateAbout(Radians(float32(i)), S/2, S/2)
 		dc.DrawEllipse(S/2, S/2, S*7/16, S/8)
 		dc.Fill()
 		dc.Pop()
@@ -209,7 +209,7 @@ func TestDrawImage(t *testing.T) {
 	src.SetRGB(1, 1, 1)
 	src.Clear()
 	for i := 10; i < 100; i += 10 {
-		x := float64(i) + 0.5
+		x := float32(i) + 0.5
 		src.DrawLine(x, 0, x, 100)
 		src.DrawLine(0, x, 100, x)
 	}
@@ -250,7 +250,7 @@ func TestDrawPoint(t *testing.T) {
 	dc.Scale(10, 10)
 	for y := 0; y <= 10; y++ {
 		for x := 0; x <= 10; x++ {
-			dc.DrawPoint(float64(x), float64(y), 3)
+			dc.DrawPoint(float32(x), float32(y), 3)
 			dc.Fill()
 		}
 	}

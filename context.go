@@ -7,7 +7,6 @@ import (
 	"image/color"
 	"image/png"
 	"io"
-	"math"
 
 	"github.com/golang/freetype/raster"
 	"golang.org/x/image/draw"
@@ -65,13 +64,13 @@ type Context struct {
 	start         Point
 	current       Point
 	hasCurrent    bool
-	dashes        []float64
-	lineWidth     float64
+	dashes        []float32
+	lineWidth     float32
 	lineCap       LineCap
 	lineJoin      LineJoin
 	fillRule      FillRule
 	fontFace      font.Face
-	fontHeight    float64
+	fontHeight    float32
 	matrix        Matrix
 	stack         []*Context
 }
@@ -137,11 +136,11 @@ func (dc *Context) EncodePNG(w io.Writer) error {
 // SetDash sets the current dash pattern to use. Call with zero arguments to
 // disable dashes. The values specify the lengths of each dash, with
 // alternating on and off lengths.
-func (dc *Context) SetDash(dashes ...float64) {
+func (dc *Context) SetDash(dashes ...float32) {
 	dc.dashes = dashes
 }
 
-func (dc *Context) SetLineWidth(lineWidth float64) {
+func (dc *Context) SetLineWidth(lineWidth float32) {
 	dc.lineWidth = lineWidth
 }
 
@@ -235,7 +234,7 @@ func (dc *Context) SetRGB255(r, g, b int) {
 
 // SetRGBA sets the current color. r, g, b, a values should be between 0 and 1,
 // inclusive.
-func (dc *Context) SetRGBA(r, g, b, a float64) {
+func (dc *Context) SetRGBA(r, g, b, a float32) {
 	dc.color = color.NRGBA{
 		uint8(r * 255),
 		uint8(g * 255),
@@ -247,7 +246,7 @@ func (dc *Context) SetRGBA(r, g, b, a float64) {
 
 // SetRGB sets the current color. r, g, b values should be between 0 and 1,
 // inclusive. Alpha will be set to 1 (fully opaque).
-func (dc *Context) SetRGB(r, g, b float64) {
+func (dc *Context) SetRGB(r, g, b float32) {
 	dc.SetRGBA(r, g, b, 1)
 }
 
@@ -255,7 +254,7 @@ func (dc *Context) SetRGB(r, g, b float64) {
 
 // MoveTo starts a new subpath within the current path starting at the
 // specified point.
-func (dc *Context) MoveTo(x, y float64) {
+func (dc *Context) MoveTo(x, y float32) {
 	if dc.hasCurrent {
 		dc.fillPath.Add1(dc.start.Fixed())
 	}
@@ -270,7 +269,7 @@ func (dc *Context) MoveTo(x, y float64) {
 
 // LineTo adds a line segment to the current path starting at the current
 // point. If there is no current point, it is equivalent to MoveTo(x, y)
-func (dc *Context) LineTo(x, y float64) {
+func (dc *Context) LineTo(x, y float32) {
 	if !dc.hasCurrent {
 		dc.MoveTo(x, y)
 	} else {
@@ -285,7 +284,7 @@ func (dc *Context) LineTo(x, y float64) {
 // QuadraticTo adds a quadratic bezier curve to the current path starting at
 // the current point. If there is no current point, it first performs
 // MoveTo(x1, y1)
-func (dc *Context) QuadraticTo(x1, y1, x2, y2 float64) {
+func (dc *Context) QuadraticTo(x1, y1, x2, y2 float32) {
 	if !dc.hasCurrent {
 		dc.MoveTo(x1, y1)
 	}
@@ -302,7 +301,7 @@ func (dc *Context) QuadraticTo(x1, y1, x2, y2 float64) {
 // current point. If there is no current point, it first performs
 // MoveTo(x1, y1). Because freetype/raster does not support cubic beziers,
 // this is emulated with many small line segments.
-func (dc *Context) CubicTo(x1, y1, x2, y2, x3, y3 float64) {
+func (dc *Context) CubicTo(x1, y1, x2, y2, x3, y3 float32) {
 	if !dc.hasCurrent {
 		dc.MoveTo(x1, y1)
 	}
@@ -525,7 +524,7 @@ func (dc *Context) SetPixel(x, y int) {
 // DrawPoint is like DrawCircle but ensures that a circle of the specified
 // size is drawn regardless of the current transformation matrix. The position
 // is still transformed, but not the shape of the point.
-func (dc *Context) DrawPoint(x, y, r float64) {
+func (dc *Context) DrawPoint(x, y, r float32) {
 	dc.Push()
 	tx, ty := dc.TransformPoint(x, y)
 	dc.Identity()
@@ -533,12 +532,12 @@ func (dc *Context) DrawPoint(x, y, r float64) {
 	dc.Pop()
 }
 
-func (dc *Context) DrawLine(x1, y1, x2, y2 float64) {
+func (dc *Context) DrawLine(x1, y1, x2, y2 float32) {
 	dc.MoveTo(x1, y1)
 	dc.LineTo(x2, y2)
 }
 
-func (dc *Context) DrawRectangle(x, y, w, h float64) {
+func (dc *Context) DrawRectangle(x, y, w, h float32) {
 	dc.NewSubPath()
 	dc.MoveTo(x, y)
 	dc.LineTo(x+w, y)
@@ -547,7 +546,7 @@ func (dc *Context) DrawRectangle(x, y, w, h float64) {
 	dc.ClosePath()
 }
 
-func (dc *Context) DrawRoundedRectangle(x, y, w, h, r float64) {
+func (dc *Context) DrawRoundedRectangle(x, y, w, h, r float32) {
 	x0, x1, x2, x3 := x, x+r, x+w-r, x+w
 	y0, y1, y2, y3 := y, y+r, y+h-r, y+h
 	dc.NewSubPath()
@@ -563,19 +562,19 @@ func (dc *Context) DrawRoundedRectangle(x, y, w, h, r float64) {
 	dc.ClosePath()
 }
 
-func (dc *Context) DrawEllipticalArc(x, y, rx, ry, angle1, angle2 float64) {
+func (dc *Context) DrawEllipticalArc(x, y, rx, ry, angle1, angle2 float32) {
 	const n = 16
 	for i := 0; i < n; i++ {
-		p1 := float64(i+0) / n
-		p2 := float64(i+1) / n
+		p1 := float32(i+0) / n
+		p2 := float32(i+1) / n
 		a1 := angle1 + (angle2-angle1)*p1
 		a2 := angle1 + (angle2-angle1)*p2
-		x0 := x + rx*math.Cos(a1)
-		y0 := y + ry*math.Sin(a1)
-		x1 := x + rx*math.Cos(a1+(a2-a1)/2)
-		y1 := y + ry*math.Sin(a1+(a2-a1)/2)
-		x2 := x + rx*math.Cos(a2)
-		y2 := y + ry*math.Sin(a2)
+		x0 := x + rx*Cos(a1)
+		y0 := y + ry*Sin(a1)
+		x1 := x + rx*Cos(a1+(a2-a1)/2)
+		y1 := y + ry*Sin(a1+(a2-a1)/2)
+		x2 := x + rx*Cos(a2)
+		y2 := y + ry*Sin(a2)
 		cx := 2*x1 - x0/2 - x2/2
 		cy := 2*y1 - y0/2 - y2/2
 		if i == 0 {
@@ -589,32 +588,32 @@ func (dc *Context) DrawEllipticalArc(x, y, rx, ry, angle1, angle2 float64) {
 	}
 }
 
-func (dc *Context) DrawEllipse(x, y, rx, ry float64) {
+func (dc *Context) DrawEllipse(x, y, rx, ry float32) {
 	dc.NewSubPath()
-	dc.DrawEllipticalArc(x, y, rx, ry, 0, 2*math.Pi)
+	dc.DrawEllipticalArc(x, y, rx, ry, 0, 2*Pi)
 	dc.ClosePath()
 }
 
-func (dc *Context) DrawArc(x, y, r, angle1, angle2 float64) {
+func (dc *Context) DrawArc(x, y, r, angle1, angle2 float32) {
 	dc.DrawEllipticalArc(x, y, r, r, angle1, angle2)
 }
 
-func (dc *Context) DrawCircle(x, y, r float64) {
+func (dc *Context) DrawCircle(x, y, r float32) {
 	dc.NewSubPath()
-	dc.DrawEllipticalArc(x, y, r, r, 0, 2*math.Pi)
+	dc.DrawEllipticalArc(x, y, r, r, 0, 2*Pi)
 	dc.ClosePath()
 }
 
-func (dc *Context) DrawRegularPolygon(n int, x, y, r, rotation float64) {
-	angle := 2 * math.Pi / float64(n)
-	rotation -= math.Pi / 2
+func (dc *Context) DrawRegularPolygon(n int, x, y, r, rotation float32) {
+	angle := 2 * Pi / float32(n)
+	rotation -= Pi / 2
 	if n%2 == 0 {
 		rotation += angle / 2
 	}
 	dc.NewSubPath()
 	for i := 0; i < n; i++ {
-		a := rotation + angle*float64(i)
-		dc.LineTo(x+r*math.Cos(a), y+r*math.Sin(a))
+		a := rotation + angle*float32(i)
+		dc.LineTo(x+r*Cos(a), y+r*Sin(a))
 	}
 	dc.ClosePath()
 }
@@ -627,14 +626,14 @@ func (dc *Context) DrawImage(im image.Image, x, y int) {
 // DrawImageAnchored draws the specified image at the specified anchor point.
 // The anchor point is x - w * ax, y - h * ay, where w, h is the size of the
 // image. Use ax=0.5, ay=0.5 to center the image at the specified point.
-func (dc *Context) DrawImageAnchored(im image.Image, x, y int, ax, ay float64) {
+func (dc *Context) DrawImageAnchored(im image.Image, x, y int, ax, ay float32) {
 	s := im.Bounds().Size()
-	x -= int(ax * float64(s.X))
-	y -= int(ay * float64(s.Y))
-	transformer := draw.BiLinear
-	fx, fy := float64(x), float64(y)
+	x -= int(ax * float32(s.X))
+	y -= int(ay * float32(s.Y))
+	transformer := draw.NearestNeighbor
+	fx, fy := float32(x), float32(y)
 	m := dc.matrix.Translate(fx, fy)
-	s2d := f64.Aff3{m.XX, m.XY, m.X0, m.YX, m.YY, m.Y0}
+	s2d := f64.Aff3{float64(m.XX), float64(m.XY), float64(m.X0), float64(m.YX), float64(m.YY), float64(m.Y0)}
 	if dc.mask == nil {
 		transformer.Transform(dc.im, s2d, im, im.Bounds(), draw.Over, nil)
 	} else {
@@ -649,10 +648,10 @@ func (dc *Context) DrawImageAnchored(im image.Image, x, y int, ax, ay float64) {
 
 func (dc *Context) SetFontFace(fontFace font.Face) {
 	dc.fontFace = fontFace
-	dc.fontHeight = float64(fontFace.Metrics().Height) / 64
+	dc.fontHeight = float32(fontFace.Metrics().Height) / 64
 }
 
-func (dc *Context) LoadFontFace(path string, points float64) error {
+func (dc *Context) LoadFontFace(path string, points float32) error {
 	face, err := LoadFontFace(path, points)
 	if err == nil {
 		dc.fontFace = face
@@ -661,11 +660,11 @@ func (dc *Context) LoadFontFace(path string, points float64) error {
 	return err
 }
 
-func (dc *Context) FontHeight() float64 {
+func (dc *Context) FontHeight() float32 {
 	return dc.fontHeight
 }
 
-func (dc *Context) drawString(im *image.RGBA, s string, x, y float64) {
+func (dc *Context) drawString(im *image.RGBA, s string, x, y float32) {
 	d := &font.Drawer{
 		Dst:  im,
 		Src:  image.NewUniform(dc.color),
@@ -686,10 +685,10 @@ func (dc *Context) drawString(im *image.RGBA, s string, x, y float64) {
 			continue
 		}
 		sr := dr.Sub(dr.Min)
-		transformer := draw.BiLinear
-		fx, fy := float64(dr.Min.X), float64(dr.Min.Y)
+		transformer := draw.NearestNeighbor
+		fx, fy := float32(dr.Min.X), float32(dr.Min.Y)
 		m := dc.matrix.Translate(fx, fy)
-		s2d := f64.Aff3{m.XX, m.XY, m.X0, m.YX, m.YY, m.Y0}
+		s2d := f64.Aff3{float64(m.XX), float64(m.XY), float64(m.X0), float64(m.YX), float64(m.YY), float64(m.Y0)}
 		transformer.Transform(d.Dst, s2d, d.Src, sr, draw.Over, &draw.Options{
 			SrcMask:  mask,
 			SrcMaskP: maskp,
@@ -700,14 +699,14 @@ func (dc *Context) drawString(im *image.RGBA, s string, x, y float64) {
 }
 
 // DrawString draws the specified text at the specified point.
-func (dc *Context) DrawString(s string, x, y float64) {
+func (dc *Context) DrawString(s string, x, y float32) {
 	dc.DrawStringAnchored(s, x, y, 0, 0)
 }
 
 // DrawStringAnchored draws the specified text at the specified anchor point.
 // The anchor point is x - w * ax, y - h * ay, where w, h is the size of the
 // text. Use ax=0.5, ay=0.5 to center the text at the specified point.
-func (dc *Context) DrawStringAnchored(s string, x, y, ax, ay float64) {
+func (dc *Context) DrawStringAnchored(s string, x, y, ax, ay float32) {
 	w, h := dc.MeasureString(s)
 	x -= ax * w
 	y += ay * h
@@ -723,9 +722,9 @@ func (dc *Context) DrawStringAnchored(s string, x, y, ax, ay float64) {
 // DrawStringWrapped word-wraps the specified string to the given max width
 // and then draws it at the specified anchor point using the given line
 // spacing and text alignment.
-func (dc *Context) DrawStringWrapped(s string, x, y, ax, ay, width, lineSpacing float64, align Align) {
+func (dc *Context) DrawStringWrapped(s string, x, y, ax, ay, width, lineSpacing float32, align Align) {
 	lines := dc.WordWrap(s, width)
-	h := float64(len(lines)) * dc.fontHeight * lineSpacing
+	h := float32(len(lines)) * dc.fontHeight * lineSpacing
 	h -= (lineSpacing - 1) * dc.fontHeight
 	x -= ax * width
 	y -= ay * h
@@ -748,17 +747,17 @@ func (dc *Context) DrawStringWrapped(s string, x, y, ax, ay, width, lineSpacing 
 
 // MeasureString returns the rendered width and height of the specified text
 // given the current font face.
-func (dc *Context) MeasureString(s string) (w, h float64) {
+func (dc *Context) MeasureString(s string) (w, h float32) {
 	d := &font.Drawer{
 		Face: dc.fontFace,
 	}
 	a := d.MeasureString(s)
-	return float64(a >> 6), dc.fontHeight
+	return float32(a >> 6), dc.fontHeight
 }
 
 // WordWrap wraps the specified string to the given max width and current
 // font face.
-func (dc *Context) WordWrap(s string, w float64) []string {
+func (dc *Context) WordWrap(s string, w float32) []string {
 	return wordWrap(dc, s, w)
 }
 
@@ -771,19 +770,19 @@ func (dc *Context) Identity() {
 }
 
 // Translate updates the current matrix with a translation.
-func (dc *Context) Translate(x, y float64) {
+func (dc *Context) Translate(x, y float32) {
 	dc.matrix = dc.matrix.Translate(x, y)
 }
 
 // Scale updates the current matrix with a scaling factor.
 // Scaling occurs about the origin.
-func (dc *Context) Scale(x, y float64) {
+func (dc *Context) Scale(x, y float32) {
 	dc.matrix = dc.matrix.Scale(x, y)
 }
 
 // ScaleAbout updates the current matrix with a scaling factor.
 // Scaling occurs about the specified point.
-func (dc *Context) ScaleAbout(sx, sy, x, y float64) {
+func (dc *Context) ScaleAbout(sx, sy, x, y float32) {
 	dc.Translate(x, y)
 	dc.Scale(sx, sy)
 	dc.Translate(-x, -y)
@@ -791,13 +790,13 @@ func (dc *Context) ScaleAbout(sx, sy, x, y float64) {
 
 // Rotate updates the current matrix with a clockwise rotation.
 // Rotation occurs about the origin. Angle is specified in radians.
-func (dc *Context) Rotate(angle float64) {
+func (dc *Context) Rotate(angle float32) {
 	dc.matrix = dc.matrix.Rotate(angle)
 }
 
 // RotateAbout updates the current matrix with a clockwise rotation.
 // Rotation occurs about the specified point. Angle is specified in radians.
-func (dc *Context) RotateAbout(angle, x, y float64) {
+func (dc *Context) RotateAbout(angle, x, y float32) {
 	dc.Translate(x, y)
 	dc.Rotate(angle)
 	dc.Translate(-x, -y)
@@ -805,13 +804,13 @@ func (dc *Context) RotateAbout(angle, x, y float64) {
 
 // Shear updates the current matrix with a shearing angle.
 // Shearing occurs about the origin.
-func (dc *Context) Shear(x, y float64) {
+func (dc *Context) Shear(x, y float32) {
 	dc.matrix = dc.matrix.Shear(x, y)
 }
 
 // ShearAbout updates the current matrix with a shearing angle.
 // Shearing occurs about the specified point.
-func (dc *Context) ShearAbout(sx, sy, x, y float64) {
+func (dc *Context) ShearAbout(sx, sy, x, y float32) {
 	dc.Translate(x, y)
 	dc.Shear(sx, sy)
 	dc.Translate(-x, -y)
@@ -819,14 +818,14 @@ func (dc *Context) ShearAbout(sx, sy, x, y float64) {
 
 // TransformPoint multiplies the specified point by the current matrix,
 // returning a transformed position.
-func (dc *Context) TransformPoint(x, y float64) (tx, ty float64) {
+func (dc *Context) TransformPoint(x, y float32) (tx, ty float32) {
 	return dc.matrix.TransformPoint(x, y)
 }
 
 // InvertY flips the Y axis so that Y grows from bottom to top and Y=0 is at
 // the bottom of the image.
 func (dc *Context) InvertY() {
-	dc.Translate(0, float64(dc.height))
+	dc.Translate(0, float32(dc.height))
 	dc.Scale(1, -1)
 }
 

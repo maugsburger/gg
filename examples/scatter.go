@@ -28,7 +28,7 @@ func main() {
 	dc.Scale(S-P*2, S-P*2)
 	// draw minor grid
 	for i := 1; i <= 10; i++ {
-		x := float64(i) / 10
+		x := float32(i) / 10
 		dc.MoveTo(x, 0)
 		dc.LineTo(x, 1)
 		dc.MoveTo(0, x)

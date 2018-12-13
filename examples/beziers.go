@@ -6,11 +6,11 @@ import (
 	"github.com/fogleman/gg"
 )
 
-func random() float64 {
+func random() float32 {
 	return rand.Float64()*2 - 1
 }
 
-func point() (x, y float64) {
+func point() (x, y float32) {
 	return random(), random()
 }
 
@@ -67,8 +67,8 @@ func main() {
 	dc.Clear()
 	for j := 0; j < H; j++ {
 		for i := 0; i < W; i++ {
-			x := float64(i)*S + S/2
-			y := float64(j)*S + S/2
+			x := float32(i)*S + S/2
+			y := float32(j)*S + S/2
 			dc.Push()
 			dc.Translate(x, y)
 			dc.Scale(S/2, S/2)

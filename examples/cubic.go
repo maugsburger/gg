@@ -10,7 +10,7 @@ func main() {
 	dc.Translate(S/2, S/2)
 	dc.Scale(40, 40)
 
-	var x0, y0, x1, y1, x2, y2, x3, y3 float64
+	var x0, y0, x1, y1, x2, y2, x3, y3 float32
 	x0, y0 = -10, 0
 	x1, y1 = -8, -8
 	x2, y2 = 8, 8

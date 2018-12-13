@@ -16,8 +16,8 @@ func main() {
 	for r := 0; r < 256; r++ {
 		for c := 0; c < 256; c++ {
 			i := r*256 + c
-			x := float64(c*T) + T/2
-			y := float64(r*T) + T/2
+			x := float32(c*T) + T/2
+			y := float32(r*T) + T/2
 			dc.DrawStringAnchored(string(rune(i)), x, y, 0.5, 0.5)
 		}
 	}

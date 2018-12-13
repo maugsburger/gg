@@ -20,7 +20,7 @@ func main() {
 	s1 := im1.Bounds().Size()
 	s2 := im2.Bounds().Size()
 
-	width := int(math.Max(float64(s1.X), float64(s2.X)))
+	width := int(math.Max(float32(s1.X), float32(s2.X)))
 	height := s1.Y + s2.Y
 
 	dc := gg.NewContext(width, height)

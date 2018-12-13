@@ -6,7 +6,7 @@ import (
 )
 
 type measureStringer interface {
-	MeasureString(s string) (w, h float64)
+	MeasureString(s string) (w, h float32)
 }
 
 func splitOnSpace(x string) []string {
@@ -25,7 +25,7 @@ func splitOnSpace(x string) []string {
 	return result
 }
 
-func wordWrap(m measureStringer, s string, width float64) []string {
+func wordWrap(m measureStringer, s string, width float32) []string {
 	var result []string
 	for _, line := range strings.Split(s, "\n") {
 		fields := splitOnSpace(line)

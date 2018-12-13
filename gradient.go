@@ -2,12 +2,11 @@ package gg
 
 import (
 	"image/color"
-	"math"
 	"sort"
 )
 
 type stop struct {
-	pos   float64
+	pos   float32
 	color color.Color
 }
 
@@ -30,12 +29,12 @@ func (s stops) Swap(i, j int) {
 
 type Gradient interface {
 	Pattern
-	AddColorStop(offset float64, color color.Color)
+	AddColorStop(offset float32, color color.Color)
 }
 
 // Linear Gradient
 type linearGradient struct {
-	x0, y0, x1, y1 float64
+	x0, y0, x1, y1 float32
 	stops          stops
 }
 
@@ -44,7 +43,7 @@ func (g *linearGradient) ColorAt(x, y int) color.Color {
 		return color.Transparent
 	}
 
-	fx, fy := float64(x), float64(y)
+	fx, fy := float32(x), float32(y)
 	x0, y0, x1, y1 := g.x0, g.y0, g.x1, g.y1
 	dx, dy := x1-x0, y1-y0
 
@@ -64,19 +63,19 @@ func (g *linearGradient) ColorAt(x, y int) color.Color {
 		return g.stops[0].color
 	}
 	// Calculate distance to (x0,y0) alone (x0,y0)->(x1,y1)
-	mag := math.Hypot(dx, dy)
+	mag := Hypot(dx, dy)
 	u := ((fx-x0)*-dy + (fy-y0)*dx) / (mag * mag)
 	x2, y2 := x0+u*-dy, y0+u*dx
-	d := math.Hypot(fx-x2, fy-y2) / mag
+	d := Hypot(fx-x2, fy-y2) / mag
 	return getColor(d, g.stops)
 }
 
-func (g *linearGradient) AddColorStop(offset float64, color color.Color) {
+func (g *linearGradient) AddColorStop(offset float32, color color.Color) {
 	g.stops = append(g.stops, stop{pos: offset, color: color})
 	sort.Sort(g.stops)
 }
 
-func NewLinearGradient(x0, y0, x1, y1 float64) Gradient {
+func NewLinearGradient(x0, y0, x1, y1 float32) Gradient {
 	g := &linearGradient{
 		x0: x0, y0: y0,
 		x1: x1, y1: y1,
@@ -86,17 +85,17 @@ func NewLinearGradient(x0, y0, x1, y1 float64) Gradient {
 
 // Radial Gradient
 type circle struct {
-	x, y, r float64
+	x, y, r float32
 }
 
 type radialGradient struct {
 	c0, c1, cd circle
-	a, inva    float64
-	mindr      float64
+	a, inva    float32
+	mindr      float32
 	stops      stops
 }
 
-func dot3(x0, y0, z0, x1, y1, z1 float64) float64 {
+func dot3(x0, y0, z0, x1, y1, z1 float32) float32 {
 	return x0*x1 + y0*y1 + z0*z1
 }
 
@@ -107,7 +106,7 @@ func (g *radialGradient) ColorAt(x, y int) color.Color {
 
 	// copy from pixman's pixman-radial-gradient.c
 
-	dx, dy := float64(x)+0.5-g.c0.x, float64(y)+0.5-g.c0.y
+	dx, dy := float32(x)+0.5-g.c0.x, float32(y)+0.5-g.c0.y
 	b := dot3(dx, dy, g.c0.r, g.cd.x, g.cd.y, g.cd.r)
 	c := dot3(dx, dy, -g.c0.r, dx, dy, g.c0.r)
 
@@ -124,7 +123,7 @@ func (g *radialGradient) ColorAt(x, y int) color.Color {
 
 	discr := dot3(b, g.a, 0, b, -c, 0)
 	if discr >= 0 {
-		sqrtdiscr := math.Sqrt(discr)
+		sqrtdiscr := Sqrt(discr)
 		t0 := (b + sqrtdiscr) * g.inva
 		t1 := (b - sqrtdiscr) * g.inva
 
@@ -138,17 +137,17 @@ func (g *radialGradient) ColorAt(x, y int) color.Color {
 	return color.Transparent
 }
 
-func (g *radialGradient) AddColorStop(offset float64, color color.Color) {
+func (g *radialGradient) AddColorStop(offset float32, color color.Color) {
 	g.stops = append(g.stops, stop{pos: offset, color: color})
 	sort.Sort(g.stops)
 }
 
-func NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) Gradient {
+func NewRadialGradient(x0, y0, r0, x1, y1, r1 float32) Gradient {
 	c0 := circle{x0, y0, r0}
 	c1 := circle{x1, y1, r1}
 	cd := circle{x1 - x0, y1 - y0, r1 - r0}
 	a := dot3(cd.x, cd.y, -cd.r, cd.x, cd.y, cd.r)
-	var inva float64
+	var inva float32
 	if a != 0 {
 		inva = 1.0 / a
 	}
@@ -164,7 +163,7 @@ func NewRadialGradient(x0, y0, r0, x1, y1, r1 float64) Gradient {
 	return g
 }
 
-func getColor(pos float64, stops stops) color.Color {
+func getColor(pos float32, stops stops) color.Color {
 	if pos <= 0.0 || len(stops) == 1 {
 		return stops[0].color
 	}
@@ -185,7 +184,7 @@ func getColor(pos float64, stops stops) color.Color {
 	return last.color
 }
 
-func colorLerp(c0, c1 color.Color, t float64) color.Color {
+func colorLerp(c0, c1 color.Color, t float32) color.Color {
 	r0, g0, b0, a0 := c0.RGBA()
 	r1, g1, b1, a1 := c1.RGBA()
 
@@ -197,6 +196,6 @@ func colorLerp(c0, c1 color.Color, t float64) color.Color {
 	}
 }
 
-func lerp(a, b uint32, t float64) uint8 {
-	return uint8(int32(float64(a)*(1.0-t)+float64(b)*t) >> 8)
+func lerp(a, b uint32, t float32) uint8 {
+	return uint8(int32(float32(a)*(1.0-t)+float32(b)*t) >> 8)
 }
